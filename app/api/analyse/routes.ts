@@ -9,20 +9,20 @@ export async function POST() {
       return NextResponse.json({ error: "No trades to analyse" }, { status: 400 });
 
     // Build stats
-    const profits = trades.map(t => t.profit);
-    const wins    = profits.filter(p => p > 0);
-    const losses  = profits.filter(p => p < 0);
-    const total   = profits.reduce((a, b) => a + b, 0);
+    const profits: number[] = trades.map((t: typeof trades[0]) => t.profit);
+    const wins    = profits.filter((p: number) => p > 0);
+    const losses  = profits.filter((p: number) => p < 0);
+    const total   = profits.reduce((a: number, b: number) => a + b, 0);
 
     // Daily P&L
     const daily: Record<string, number> = {};
-    trades.forEach(t => { daily[t.date] = (daily[t.date] || 0) + t.profit; });
+    trades.forEach((t: typeof trades[0]) => { daily[t.date] = (daily[t.date] || 0) + t.profit; });
     const dayValues = Object.values(daily);
-    const winDays   = dayValues.filter(v => v > 0).length;
+    const winDays   = dayValues.filter((v: number) => v > 0).length;
 
     // Per-symbol stats
     const bySymbol: Record<string, { profit: number; count: number }> = {};
-    trades.forEach(t => {
+    trades.forEach((t: typeof trades[0]) => {
       if (!bySymbol[t.symbol]) bySymbol[t.symbol] = { profit: 0, count: 0 };
       bySymbol[t.symbol].profit += t.profit;
       bySymbol[t.symbol].count++;
@@ -31,23 +31,23 @@ export async function POST() {
     const summary = `
 TRADER PERFORMANCE REPORT
 ==========================
-Total P&L:        $${total.toFixed(2)}
+Total P&L:        ${total.toFixed(2)}
 Total Trades:     ${trades.length}
 Win Rate:         ${((wins.length / trades.length) * 100).toFixed(1)}%
 Day Win Rate:     ${((winDays / dayValues.length) * 100).toFixed(1)}%
-Avg Win:          $${wins.length ? (wins.reduce((a,b)=>a+b,0)/wins.length).toFixed(2) : 0}
-Avg Loss:         $${losses.length ? (losses.reduce((a,b)=>a+b,0)/losses.length).toFixed(2) : 0}
-Best Day:         $${Math.max(...dayValues).toFixed(2)}
-Worst Day:        $${Math.min(...dayValues).toFixed(2)}
+Avg Win:          ${wins.length ? (wins.reduce((a: number, b: number) => a + b, 0) / wins.length).toFixed(2) : 0}
+Avg Loss:         ${losses.length ? (losses.reduce((a: number, b: number) => a + b, 0) / losses.length).toFixed(2) : 0}
+Best Day:         ${Math.max(...dayValues).toFixed(2)}
+Worst Day:        ${Math.min(...dayValues).toFixed(2)}
 
 BY SYMBOL:
-${Object.entries(bySymbol).map(([s,v]) => `  ${s}: $${v.profit.toFixed(2)} over ${v.count} trades`).join("\n")}
+${Object.entries(bySymbol).map(([s, v]) => `  ${s}: ${v.profit.toFixed(2)} over ${v.count} trades`).join("\n")}
 
 LAST 15 TRADES:
-${trades.slice(-15).map(t => `  ${t.date} | ${t.symbol} | ${t.type} | ${t.lots} lots | P&L: $${t.profit}`).join("\n")}
+${trades.slice(-15).map((t: typeof trades[0]) => `  ${t.date} | ${t.symbol} | ${t.type} | ${t.lots} lots | P&L: ${t.profit}`).join("\n")}
 
 DAILY P&L:
-${Object.entries(daily).sort().map(([d,p]) => `  ${d}: $${p.toFixed(2)}`).join("\n")}
+${Object.entries(daily).sort().map(([d, p]: [string, number]) => `  ${d}: ${p.toFixed(2)}`).join("\n")}
 `.trim();
 
     // Call Gemini
